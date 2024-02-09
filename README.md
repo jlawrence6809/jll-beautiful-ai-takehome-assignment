@@ -41,7 +41,7 @@ We have no time constraints on this project with you but recommend a submission 
 
 ## Design Decisions
 
-- I chose to use Remix.run as the framework because it is a modern and flexible framework that I used on recent projects and am comfortable with. It is also a good fit for this project because it is a full stack framework that is built on top of React and has a lot of built-in features that are useful for this project such as server side rendering, data fetching, and routing.
+- I chose to use Remix.run as the framework because it is a modern and flexible framework that I used on recent projects and am comfortable with. It is also a good fit for this project because it is a full stack framework that is built on top of React and has a lot of built-in features that are useful for getting a small project like this up and running quickly.
 - I chose to use Redux toolkit for state management because it is a modern and flexible state management library that I used on recent projects and am comfortable with. It is also a good fit for this project because it is built on top of Redux and has a lot of built-in features that are useful for a project with a lot of front end state such as a whiteboard.
 
 ## Future Improvements
