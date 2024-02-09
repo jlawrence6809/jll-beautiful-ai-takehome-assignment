@@ -8,6 +8,7 @@ export type BoxCoord = {
 export type Box = {
   id: string;
   coords: BoxCoord;
+  isSelected: boolean;
 };
 
 export const DEFAULT_COORDS: BoxCoord = {
