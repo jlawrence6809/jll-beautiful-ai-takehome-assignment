@@ -31,7 +31,6 @@ export const ResizeHandles = ({ id }: DragHandleProps) => {
         height: '100%',
         position: 'relative',
       }}
-      // allow mouse down through to parent
     >
       <div
         onMouseDown={(event) => onMouseDown(event, 'top')}

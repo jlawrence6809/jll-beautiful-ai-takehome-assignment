@@ -1,7 +1,11 @@
 /* eslint-disable jsx-a11y/no-static-element-interactions */
 import { useDispatch, useSelector } from 'react-redux';
-import { AppState, findBoxById, onMouseDownOnBox } from '../store';
-import { getSafeMouseEvent } from '~/store';
+import {
+  AppState,
+  findBoxById,
+  onMouseDownOnBox,
+  getSafeMouseEvent,
+} from '../store';
 import { ResizeHandles } from '~/components/ResizeHandles';
 
 type WhiteboardBoxProps = {

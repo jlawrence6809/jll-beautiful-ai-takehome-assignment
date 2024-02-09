@@ -8,9 +8,10 @@ import {
   onMouseDownOnBackground,
   onMouseMove,
   onMouseUp,
+  getSafeMouseEvent,
+  setWhiteboardArea,
 } from '../store';
-import { useEffect } from 'react';
-import { getSafeMouseEvent } from '~/store';
+import { useEffect, useRef } from 'react';
 
 /*
 Hi Jeremy,
@@ -35,21 +36,21 @@ Talk Soon,
 Em
  */
 
-/*
- TODO:
-
- - Drag
- - Resizing
- - Multi-select
- - Refine deselection behavior
- - Box collision resolution
- - Whiteboard edge collision
-
-*/
-
 export const Whiteboard = () => {
   const dispatch = useDispatch();
   const boxes = useSelector((state: AppState) => state.box.boxes);
+
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!ref.current) return;
+    dispatch(
+      setWhiteboardArea({
+        width: ref.current.clientWidth,
+        height: ref.current.clientHeight,
+      }),
+    );
+  }, [dispatch]);
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
@@ -83,6 +84,7 @@ export const Whiteboard = () => {
     >
       <WhiteboardControls />
       <div
+        ref={ref}
         style={{
           position: 'relative',
           width: '100vw',

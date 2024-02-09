@@ -1,10 +1,9 @@
-// app/store.js
 import { configureStore, createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { Box, DEFAULT_COORDS } from './typesAndConstants';
-import { Direction } from '~/typesAndConstants';
+import { Box, DEFAULT_COORDS, Direction } from './typesAndConstants';
 
 const initialState = {
   boxes: [] as Box[],
+  whiteboardArea: { width: 0, height: 0 },
   isDragging: false,
   resizingDirection: 'idle' as Direction | 'idle',
   mouseDownCoords: { x: 0, y: 0 },
@@ -122,43 +121,69 @@ const boxesSlice = createSlice({
     },
     onMouseMove: (state, action: PayloadAction<{ x: number; y: number }>) => {
       const { x, y } = action.payload;
-      const dx = x - state.mouseDownCoords.x;
-      const dy = y - state.mouseDownCoords.y;
+      let dx = x - state.mouseDownCoords.x;
+      let dy = y - state.mouseDownCoords.y;
+      const { width, height } = state.whiteboardArea;
 
       state.mouseDownCoords = { x, y };
 
       if (state.isDragging) {
         state.mouseDraggedSinceMouseDown = true;
+        const selectedBoxes = state.boxes.filter((b) => b.isSelected);
 
-        state.boxes
-          .filter((b) => b.isSelected)
-          .forEach((box) => {
-            if (box) {
-              box.coords = {
-                top: box.coords.top + dy,
-                bottom: box.coords.bottom + dy,
-                left: box.coords.left + dx,
-                right: box.coords.right + dx,
-              };
-            }
-          });
+        // Prevent the box from being dragged outside the whiteboard area by adjusting dx and dy.
+        const minTop = Math.min(...selectedBoxes.map((b) => b.coords.top));
+        const minLeft = Math.min(...selectedBoxes.map((b) => b.coords.left));
+        const maxBottom = Math.max(
+          ...selectedBoxes.map((b) => b.coords.bottom),
+        );
+        const maxRight = Math.max(...selectedBoxes.map((b) => b.coords.right));
+        dy = Math.max(-minTop, Math.min(height - maxBottom, dy));
+        dx = Math.max(-minLeft, Math.min(width - maxRight, dx));
+
+        selectedBoxes.forEach((box) => {
+          if (box) {
+            box.coords = {
+              top: box.coords.top + dy,
+              bottom: box.coords.bottom + dy,
+              left: box.coords.left + dx,
+              right: box.coords.right + dx,
+            };
+          }
+        });
       } else if (state.resizingDirection !== 'idle') {
-        state.boxes
-          .filter((b) => b.id === state.mouseDownOnBoxId)
-          .forEach((box) => {
-            if (box) {
-              if (state.resizingDirection === 'top') {
-                box.coords.top += dy;
-              } else if (state.resizingDirection === 'bottom') {
-                box.coords.bottom += dy;
-              } else if (state.resizingDirection === 'left') {
-                box.coords.left += dx;
-              } else if (state.resizingDirection === 'right') {
-                box.coords.right += dx;
-              }
-            }
-          });
+        const box = getBox(state.boxes, state.mouseDownOnBoxId);
+
+        if (box) {
+          if (state.resizingDirection === 'top') {
+            box.coords.top = Math.max(
+              0,
+              Math.min(box.coords.top + dy, box.coords.bottom),
+            );
+          } else if (state.resizingDirection === 'bottom') {
+            box.coords.bottom = Math.max(
+              box.coords.top,
+              Math.min(height, box.coords.bottom + dy),
+            );
+          } else if (state.resizingDirection === 'left') {
+            box.coords.left = Math.max(
+              0,
+              Math.min(box.coords.left + dx, box.coords.right),
+            );
+          } else if (state.resizingDirection === 'right') {
+            box.coords.right = Math.max(
+              box.coords.left,
+              Math.min(width, box.coords.right + dx),
+            );
+          }
+        }
       }
+    },
+    setWhiteboardArea: (
+      state,
+      action: PayloadAction<{ width: number; height: number }>,
+    ) => {
+      state.whiteboardArea = action.payload;
     },
   },
 });
@@ -198,4 +223,5 @@ export const {
   onMouseDownOnResizeHandle,
   onMouseUp,
   onMouseMove,
+  setWhiteboardArea,
 } = boxesSlice.actions;
