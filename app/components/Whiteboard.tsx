@@ -1,8 +1,9 @@
 import { WhiteboardControls } from './WhiteboardControls';
 import { WhiteboardBox } from './WhiteboardBox';
 import { CONTROL_HEIGHT } from '../typesAndConstants';
-import { useSelector } from 'react-redux';
-import { AppState } from '../store';
+import { useDispatch, useSelector } from 'react-redux';
+import { AppState, onMouseMove, onMouseUp } from '../store';
+import { useEffect } from 'react';
 
 /*
 Hi Jeremy,
@@ -40,7 +41,30 @@ Em
 */
 
 export const Whiteboard = () => {
+  const dispatch = useDispatch();
   const boxes = useSelector((state: AppState) => state.box.boxes);
+
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      dispatch(onMouseMove({ x: e.clientX, y: e.clientY }));
+    };
+    document.addEventListener('mousemove', handleMouseMove);
+
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+    };
+  }, [dispatch]);
+
+  useEffect(() => {
+    const handleMouseUp = () => {
+      dispatch(onMouseUp());
+    };
+    document.addEventListener('mouseup', handleMouseUp);
+
+    return () => {
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [dispatch]);
 
   return (
     <div
