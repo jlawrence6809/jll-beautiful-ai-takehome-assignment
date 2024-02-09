@@ -10,6 +10,7 @@ import {
   onMouseUp,
   getSafeMouseEvent,
   setWhiteboardArea,
+  onDeleteBoxes,
 } from '../store';
 import { useEffect, useRef } from 'react';
 
@@ -71,6 +72,22 @@ export const Whiteboard = () => {
 
     return () => {
       document.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [dispatch]);
+
+  // key check
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        dispatch(onMouseDownOnBackground());
+      } else if (e.key === 'Delete' || e.key === 'Backspace') {
+        dispatch(onDeleteBoxes());
+      }
+    };
+    document.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
     };
   }, [dispatch]);
 

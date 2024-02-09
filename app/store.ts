@@ -185,6 +185,13 @@ const boxesSlice = createSlice({
     ) => {
       state.whiteboardArea = action.payload;
     },
+    onDeleteBoxes: (state) => {
+      state.boxes = state.boxes.filter((box) => !box.isSelected);
+      state.mouseDownOnBoxId = '';
+      state.isDragging = false;
+      state.mouseDraggedSinceMouseDown = false;
+      state.resizingDirection = 'idle';
+    },
   },
 });
 
@@ -224,4 +231,5 @@ export const {
   onMouseUp,
   onMouseMove,
   setWhiteboardArea,
+  onDeleteBoxes,
 } = boxesSlice.actions;
