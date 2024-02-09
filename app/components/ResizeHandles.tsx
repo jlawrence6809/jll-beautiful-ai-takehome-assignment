@@ -12,17 +12,18 @@ type DragHandleProps = {
 
 export const ResizeHandles = ({ id }: DragHandleProps) => {
   const dispatch = useDispatch();
-  const onMouseDown = (event: React.MouseEvent, direction: Direction) => {
-    event.stopPropagation();
-    event.preventDefault();
-    dispatch(
-      onMouseDownOnResizeHandle({
-        id,
-        direction,
-        event: getSafeMouseEvent(event),
-      }),
-    );
-  };
+  const onMouseDown =
+    (direction: Direction) => (event: React.MouseEvent | React.TouchEvent) => {
+      event.stopPropagation();
+      event.preventDefault();
+      dispatch(
+        onMouseDownOnResizeHandle({
+          id,
+          direction,
+          event: getSafeMouseEvent(event),
+        }),
+      );
+    };
 
   return (
     <div
@@ -33,7 +34,8 @@ export const ResizeHandles = ({ id }: DragHandleProps) => {
       }}
     >
       <div
-        onMouseDown={(event) => onMouseDown(event, 'top')}
+        onMouseDown={onMouseDown('top')}
+        onTouchStart={onMouseDown('top')}
         style={{
           position: 'absolute',
           top: `-${DRAG_HANDLE_SIZE / 2}px`,
@@ -46,7 +48,8 @@ export const ResizeHandles = ({ id }: DragHandleProps) => {
       ></div>
 
       <div
-        onMouseDown={(event) => onMouseDown(event, 'left')}
+        onMouseDown={onMouseDown('left')}
+        onTouchStart={onMouseDown('left')}
         style={{
           position: 'absolute',
           left: `-${DRAG_HANDLE_SIZE / 2}px`,
@@ -59,7 +62,8 @@ export const ResizeHandles = ({ id }: DragHandleProps) => {
       ></div>
 
       <div
-        onMouseDown={(event) => onMouseDown(event, 'right')}
+        onMouseDown={onMouseDown('right')}
+        onTouchStart={onMouseDown('right')}
         style={{
           position: 'absolute',
           right: `-${DRAG_HANDLE_SIZE / 2}px`,
@@ -72,7 +76,8 @@ export const ResizeHandles = ({ id }: DragHandleProps) => {
       ></div>
 
       <div
-        onMouseDown={(event) => onMouseDown(event, 'bottom')}
+        onMouseDown={onMouseDown('bottom')}
+        onTouchStart={onMouseDown('bottom')}
         style={{
           position: 'absolute',
           bottom: `-${DRAG_HANDLE_SIZE / 2}px`,

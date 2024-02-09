@@ -119,8 +119,8 @@ const boxesSlice = createSlice({
       state.isDragging = false;
       state.mouseDraggedSinceMouseDown = false;
     },
-    onMouseMove: (state, action: PayloadAction<{ x: number; y: number }>) => {
-      const { x, y } = action.payload;
+    onMouseMove: (state, action: PayloadAction<SafeMouseEvent>) => {
+      const { x, y } = action.payload.coords;
       let dx = x - state.mouseDownCoords.x;
       let dy = y - state.mouseDownCoords.y;
       const { width, height } = state.whiteboardArea;
@@ -183,7 +183,22 @@ const boxesSlice = createSlice({
       state,
       action: PayloadAction<{ width: number; height: number }>,
     ) => {
-      state.whiteboardArea = action.payload;
+      const { width, height } = action.payload;
+
+      // Very basic rescaling logic, only shrinks boxes to be on the safe side. A real app would need more thought out logic.
+      const widthRatio = width / state.whiteboardArea.width;
+      const heightRatio = height / state.whiteboardArea.height;
+      const ratio = Math.min(widthRatio, heightRatio);
+
+      state.whiteboardArea = { width, height };
+      state.boxes.forEach((box) => {
+        box.coords = {
+          top: box.coords.top * ratio,
+          bottom: box.coords.bottom * ratio,
+          left: box.coords.left * ratio,
+          right: box.coords.right * ratio,
+        };
+      });
     },
     onDeleteBoxes: (state) => {
       state.boxes = state.boxes.filter((box) => !box.isSelected);
@@ -211,10 +226,24 @@ export const findBoxById = (id: string) => (state: AppState) =>
 /**
  * Get properties from mouse event that are safe to use in a Redux action.
  */
-export const getSafeMouseEvent = (e: MouseEvent | React.MouseEvent) => {
+export const getSafeMouseEvent = (
+  e: MouseEvent | React.MouseEvent | TouchEvent | React.TouchEvent,
+) => {
+  const x = (() => {
+    if ('clientX' in e) return e.clientX;
+    if (e.touches[0]) return e.touches[0].clientX;
+    if (e.changedTouches[0]) return e.changedTouches[0].clientX;
+    return 0;
+  })();
+  const y = (() => {
+    if ('clientY' in e) return e.clientY;
+    if (e.touches[0]) return e.touches[0].clientY;
+    if (e.changedTouches[0]) return e.changedTouches[0].clientY;
+    return 0;
+  })();
   return {
     multiSelectKey: e.metaKey || e.ctrlKey || e.shiftKey,
-    coords: { x: e.clientX, y: e.clientY },
+    coords: { x, y },
   };
 };
 

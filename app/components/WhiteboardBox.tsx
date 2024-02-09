@@ -23,6 +23,12 @@ export const WhiteboardBox = ({ boxId }: WhiteboardBoxProps) => {
   const { coords: boxCoords, isSelected } = box;
   const { top, left, bottom, right } = boxCoords;
 
+  const onMouseOrTouchDown = (event: React.MouseEvent | React.TouchEvent) => {
+    // Prevent the background from being clicked when a box is clicked.
+    event.stopPropagation();
+    dispatch(onMouseDownOnBox({ id: box.id, event: getSafeMouseEvent(event) }));
+  };
+
   return (
     <div
       style={{
@@ -35,13 +41,8 @@ export const WhiteboardBox = ({ boxId }: WhiteboardBoxProps) => {
         height: bottom - top,
         width: right - left,
       }}
-      onMouseDown={(event) => {
-        // Prevent the background from being clicked when a box is clicked.
-        event.stopPropagation();
-        dispatch(
-          onMouseDownOnBox({ id: box.id, event: getSafeMouseEvent(event) }),
-        );
-      }}
+      onMouseDown={onMouseOrTouchDown}
+      onTouchStart={onMouseOrTouchDown}
     >
       {isOnlyBoxSelected && <ResizeHandles id={boxId} />}
     </div>

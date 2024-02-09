@@ -44,34 +44,27 @@ export const Whiteboard = () => {
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (!ref.current) return;
-    dispatch(
-      setWhiteboardArea({
-        width: ref.current.clientWidth,
-        height: ref.current.clientHeight,
-      }),
-    );
-  }, [dispatch]);
-
-  useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      dispatch(onMouseMove({ x: e.clientX, y: e.clientY }));
+    const handleMouseMove = (e: MouseEvent | TouchEvent) => {
+      dispatch(onMouseMove(getSafeMouseEvent(e)));
     };
-    document.addEventListener('mousemove', handleMouseMove);
 
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('touchmove', handleMouseMove);
     return () => {
       document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('touchmove', handleMouseMove);
     };
   }, [dispatch]);
 
   useEffect(() => {
-    const handleMouseUp = (event: MouseEvent) => {
+    const handleMouseUp = (event: MouseEvent | TouchEvent) => {
       dispatch(onMouseUp(getSafeMouseEvent(event)));
     };
     document.addEventListener('mouseup', handleMouseUp);
-
+    document.addEventListener('touchend', handleMouseUp);
     return () => {
       document.removeEventListener('mouseup', handleMouseUp);
+      document.removeEventListener('touchend', handleMouseUp);
     };
   }, [dispatch]);
 
@@ -88,6 +81,26 @@ export const Whiteboard = () => {
 
     return () => {
       document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [dispatch]);
+
+  // resize whiteboard area
+  useEffect(() => {
+    const handleResize = () => {
+      if (!ref.current) return;
+      dispatch(
+        setWhiteboardArea({
+          width: ref.current.clientWidth,
+          height: ref.current.clientHeight,
+        }),
+      );
+    };
+    // establish initial size
+    handleResize();
+
+    window.addEventListener('resize', handleResize);
+    return () => {
+      window.removeEventListener('resize', handleResize);
     };
   }, [dispatch]);
 
