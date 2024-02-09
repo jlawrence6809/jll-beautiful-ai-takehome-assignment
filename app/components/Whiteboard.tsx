@@ -14,29 +14,6 @@ import {
 } from '../store';
 import { useEffect, useRef } from 'react';
 
-/*
-Hi Jeremy,
-
-Thanks so much for meeting with Igor this week. He enjoyed the chat! The next step will be a take home project. Please find more details below: 
-
-Prompt:
-Build a web app that implements a whiteboard with the ability to add resizable and movable boxes to it using React and javascript. Optionally implement multi select and multi drag. Do not implement styling, focus on the moving/scaling functionality and overall architecture and flexibility of the app.
-
-Delivery:
-Github public link preferred but any platform you choose to submit is fine.
-
-Deadline: 
-We have no time constraints on this project with you but recommend a submission within the next week or so.
-
-Next Steps:
-After we receive your submission, we will take some time to review, and schedule an additional chat with Igor to walk through your decision process and overall review on this project.
-
-Let me know if you have any questions or would like any clarification on this request.
-
-Talk Soon,
-Em
- */
-
 export const Whiteboard = () => {
   const dispatch = useDispatch();
   const boxes = useSelector((state: AppState) => state.box.boxes);

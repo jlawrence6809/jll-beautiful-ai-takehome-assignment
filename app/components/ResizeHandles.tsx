@@ -2,9 +2,7 @@
 import React from 'react';
 import { useDispatch } from 'react-redux';
 import { onMouseDownOnResizeHandle, getSafeMouseEvent } from '~/store';
-import { Direction } from '~/typesAndConstants';
-
-const DRAG_HANDLE_SIZE = 20;
+import { DRAG_HANDLE_SIZE, Direction } from '~/typesAndConstants';
 
 type DragHandleProps = {
   id: string;

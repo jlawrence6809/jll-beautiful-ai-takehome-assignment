@@ -1,35 +1,41 @@
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { CONTROL_HEIGHT } from '../typesAndConstants';
-import { addBox } from '~/store';
+import { AppState, addBox, onDeleteBoxes } from '~/store';
 
 /**
  * WhiteboardControls:
  * Required:
  * - Add Box
- * - Information
+ * - Delete
  *
  * Optional:
- * - Delete (keyboard shortcut is the alternative)
  * - Undo
  * - Redo
  * - Save (do we store this on the backend?)
  */
 export const WhiteboardControls = () => {
   const dispatch = useDispatch();
-  const onAddBox = () => {
-    dispatch(addBox());
-  };
+  const areAnyBoxesSelected = useSelector((state: AppState) =>
+    state.box.boxes.some((box) => box.isSelected),
+  );
 
   return (
     <div
       style={{
         display: 'flex',
-        justifyContent: 'space-between',
+        justifyContent: 'flex-start',
+        gap: '1rem',
         padding: '1rem',
         height: `${CONTROL_HEIGHT}px`,
       }}
     >
-      <button onClick={onAddBox}>Add Box</button>
+      <button onClick={() => dispatch(addBox())}>Add Box</button>
+      <button
+        onClick={() => dispatch(onDeleteBoxes())}
+        disabled={!areAnyBoxesSelected}
+      >
+        Delete Box(es)
+      </button>
     </div>
   );
 };
