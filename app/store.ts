@@ -1,11 +1,13 @@
 // app/store.js
 import { configureStore, createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { Box, DEFAULT_COORDS } from './typesAndConstants';
+import { Direction } from '~/typesAndConstants';
 
 const initialState = {
   boxes: [] as Box[],
   isDragging: false,
-  initialDragCoords: { x: 0, y: 0 },
+  resizingDirection: 'idle' as Direction | 'idle',
+  mouseDownCoords: { x: 0, y: 0 },
 
   mouseDownOnBoxId: '',
   mouseDownBoxWasPreviouslySelected: false,
@@ -52,7 +54,7 @@ const boxesSlice = createSlice({
       state,
       action: PayloadAction<{ x: number; y: number }>,
     ) => {
-      state.initialDragCoords = action.payload;
+      state.mouseDownCoords = action.payload;
     },
     onMouseDownOnBackground: (state) => {
       state.boxes.forEach((box) => {
@@ -72,7 +74,7 @@ const boxesSlice = createSlice({
         (box.isSelected && state.boxes.filter((b) => b.isSelected).length > 1);
 
       state.isDragging = true;
-      state.initialDragCoords = coords;
+      state.mouseDownCoords = coords;
       state.mouseDownOnBoxId = id;
       state.mouseDownBoxWasPreviouslySelected = box.isSelected;
       box.isSelected = true;
@@ -86,6 +88,18 @@ const boxesSlice = createSlice({
             b.isSelected = false;
           });
       }
+    },
+    onMouseDownOnResizeHandle: (
+      state,
+      action: PayloadAction<{
+        id: string;
+        direction: Direction;
+        event: SafeMouseEvent;
+      }>,
+    ) => {
+      state.mouseDownCoords = action.payload.event.coords;
+      state.mouseDownOnBoxId = action.payload.id;
+      state.resizingDirection = action.payload.direction;
     },
     onMouseUp: (state, action: PayloadAction<SafeMouseEvent>) => {
       if (!state.mouseDownOnBoxId) return;
@@ -107,12 +121,13 @@ const boxesSlice = createSlice({
       state.mouseDraggedSinceMouseDown = false;
     },
     onMouseMove: (state, action: PayloadAction<{ x: number; y: number }>) => {
-      if (state.isDragging) {
-        const { x, y } = action.payload;
-        const dx = x - state.initialDragCoords.x;
-        const dy = y - state.initialDragCoords.y;
+      const { x, y } = action.payload;
+      const dx = x - state.mouseDownCoords.x;
+      const dy = y - state.mouseDownCoords.y;
 
-        state.initialDragCoords = { x, y };
+      state.mouseDownCoords = { x, y };
+
+      if (state.isDragging) {
         state.mouseDraggedSinceMouseDown = true;
 
         state.boxes
@@ -125,6 +140,22 @@ const boxesSlice = createSlice({
                 left: box.coords.left + dx,
                 right: box.coords.right + dx,
               };
+            }
+          });
+      } else if (state.resizingDirection !== 'idle') {
+        state.boxes
+          .filter((b) => b.id === state.mouseDownOnBoxId)
+          .forEach((box) => {
+            if (box) {
+              if (state.resizingDirection === 'top') {
+                box.coords.top += dy;
+              } else if (state.resizingDirection === 'bottom') {
+                box.coords.bottom += dy;
+              } else if (state.resizingDirection === 'left') {
+                box.coords.left += dx;
+              } else if (state.resizingDirection === 'right') {
+                box.coords.right += dx;
+              }
             }
           });
       }
@@ -164,6 +195,7 @@ export const {
   setInitialDragCoords,
   onMouseDownOnBackground,
   onMouseDownOnBox,
+  onMouseDownOnResizeHandle,
   onMouseUp,
   onMouseMove,
 } = boxesSlice.actions;

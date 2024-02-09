@@ -1,7 +1,8 @@
 /* eslint-disable jsx-a11y/no-static-element-interactions */
 import { useDispatch, useSelector } from 'react-redux';
-import { findBoxById, onMouseDownOnBox } from '../store';
+import { AppState, findBoxById, onMouseDownOnBox } from '../store';
 import { getSafeMouseEvent } from '~/store';
+import { ResizeHandles } from '~/components/ResizeHandles';
 
 type WhiteboardBoxProps = {
   boxId: string;
@@ -10,6 +11,10 @@ type WhiteboardBoxProps = {
 export const WhiteboardBox = ({ boxId }: WhiteboardBoxProps) => {
   const dispatch = useDispatch();
   const box = useSelector(findBoxById(boxId));
+  const isOnlyBoxSelected = useSelector((state: AppState) => {
+    const selectedBoxes = state.box.boxes.filter((b) => b.isSelected);
+    return selectedBoxes.length === 1 && selectedBoxes[0].id === box.id;
+  });
 
   const { coords: boxCoords, isSelected } = box;
   const { top, left, bottom, right } = boxCoords;
@@ -20,6 +25,7 @@ export const WhiteboardBox = ({ boxId }: WhiteboardBoxProps) => {
         position: 'absolute',
         border: '1px solid black',
         backgroundColor: isSelected ? 'blue' : 'lightgrey',
+        opacity: 0.7,
         top,
         left,
         height: bottom - top,
@@ -33,7 +39,7 @@ export const WhiteboardBox = ({ boxId }: WhiteboardBoxProps) => {
         );
       }}
     >
-      Box{box.id.charAt(0)}
+      {isOnlyBoxSelected && <ResizeHandles id={boxId} />}
     </div>
   );
 };

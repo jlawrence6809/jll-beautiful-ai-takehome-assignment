@@ -19,3 +19,5 @@ export const DEFAULT_COORDS: BoxCoord = {
 };
 
 export const CONTROL_HEIGHT = 20;
+
+export type Direction = 'top' | 'left' | 'right' | 'bottom';
