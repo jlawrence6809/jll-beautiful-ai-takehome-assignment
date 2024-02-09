@@ -1,9 +1,16 @@
+/* eslint-disable jsx-a11y/no-static-element-interactions */
 import { WhiteboardControls } from './WhiteboardControls';
 import { WhiteboardBox } from './WhiteboardBox';
 import { CONTROL_HEIGHT } from '../typesAndConstants';
 import { useDispatch, useSelector } from 'react-redux';
-import { AppState, onMouseMove, onMouseUp } from '../store';
+import {
+  AppState,
+  onMouseDownOnBackground,
+  onMouseMove,
+  onMouseUp,
+} from '../store';
 import { useEffect } from 'react';
+import { getSafeMouseEvent } from '~/store';
 
 /*
 Hi Jeremy,
@@ -56,8 +63,8 @@ export const Whiteboard = () => {
   }, [dispatch]);
 
   useEffect(() => {
-    const handleMouseUp = () => {
-      dispatch(onMouseUp());
+    const handleMouseUp = (event: MouseEvent) => {
+      dispatch(onMouseUp(getSafeMouseEvent(event)));
     };
     document.addEventListener('mouseup', handleMouseUp);
 
@@ -82,6 +89,7 @@ export const Whiteboard = () => {
           height: `calc(100vh - ${CONTROL_HEIGHT}px)`,
           borderTop: '1px solid grey',
         }}
+        onMouseDown={() => dispatch(onMouseDownOnBackground())}
       >
         {boxes.map((box) => (
           <WhiteboardBox key={box.id} boxId={box.id} />

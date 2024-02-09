@@ -16,11 +16,12 @@ const initialState = {
  * Move the box with the given id to the top of the array.
  */
 const moveBoxToTop = (boxes: Box[], id: string) => {
-  const box = boxes.find((b) => b.id === id);
-  if (box) {
-    return boxes.filter((b) => b.id !== id).concat(box);
+  const index = boxes.findIndex((box) => box.id === id);
+  const box = boxes[index];
+  if (index !== -1) {
+    boxes.splice(index, 1);
+    boxes.push(box);
   }
-  return boxes;
 };
 
 const getBox = (boxes: Box[], id: string) => {
@@ -44,19 +45,6 @@ const boxesSlice = createSlice({
         state.boxes.splice(index, 1);
       }
     },
-    selectBox: (state, action: PayloadAction<string>) => {
-      const box = getBox(state.boxes, action.payload);
-      if (box) {
-        box.isSelected = true;
-        state.boxes = moveBoxToTop(state.boxes, action.payload);
-      }
-    },
-    deselectBox: (state, action: PayloadAction<string>) => {
-      const box = getBox(state.boxes, action.payload);
-      if (box) {
-        box.isSelected = false;
-      }
-    },
     setIsDragging: (state, action: PayloadAction<boolean>) => {
       state.isDragging = action.payload;
     },
@@ -66,21 +54,40 @@ const boxesSlice = createSlice({
     ) => {
       state.initialDragCoords = action.payload;
     },
+    onMouseDownOnBackground: (state) => {
+      state.boxes.forEach((box) => {
+        box.isSelected = false;
+      });
+    },
     onMouseDownOnBox: (
       state,
       action: PayloadAction<{ id: string; event: SafeMouseEvent }>,
     ) => {
       const { id, event } = action.payload;
+      const { multiSelectKey, coords } = event;
+      const box = getBox(state.boxes, id);
+      const maintainSelectionOfOtherBoxes =
+        // If the user is holding the multi-select key, we don't want to clear
+        multiSelectKey ||
+        (box.isSelected && state.boxes.filter((b) => b.isSelected).length > 1);
 
       state.isDragging = true;
-      state.initialDragCoords = event;
+      state.initialDragCoords = coords;
       state.mouseDownOnBoxId = id;
-
-      const box = getBox(state.boxes, id);
       state.mouseDownBoxWasPreviouslySelected = box.isSelected;
       box.isSelected = true;
+
+      moveBoxToTop(state.boxes, id);
+
+      if (!maintainSelectionOfOtherBoxes) {
+        state.boxes
+          .filter((b) => b.id !== id)
+          .forEach((b) => {
+            b.isSelected = false;
+          });
+      }
     },
-    onMouseUp: (state) => {
+    onMouseUp: (state, action: PayloadAction<SafeMouseEvent>) => {
       if (!state.mouseDownOnBoxId) return;
       const box = getBox(state.boxes, state.mouseDownOnBoxId);
       if (
@@ -88,6 +95,12 @@ const boxesSlice = createSlice({
         !state.mouseDraggedSinceMouseDown
       ) {
         box.isSelected = false;
+
+        if (!action.payload.multiSelectKey) {
+          state.boxes.forEach((b) => {
+            b.isSelected = false;
+          });
+        }
       }
       state.mouseDownOnBoxId = '';
       state.isDragging = false;
@@ -135,8 +148,11 @@ export const findBoxById = (id: string) => (state: AppState) =>
 /**
  * Get properties from mouse event that are safe to use in a Redux action.
  */
-export const getSafeMouseEvent = (e: React.MouseEvent) => {
-  return { x: e.clientX, y: e.clientY };
+export const getSafeMouseEvent = (e: MouseEvent | React.MouseEvent) => {
+  return {
+    multiSelectKey: e.metaKey || e.ctrlKey || e.shiftKey,
+    coords: { x: e.clientX, y: e.clientY },
+  };
 };
 
 type SafeMouseEvent = ReturnType<typeof getSafeMouseEvent>;
@@ -144,10 +160,9 @@ type SafeMouseEvent = ReturnType<typeof getSafeMouseEvent>;
 export const {
   addBox,
   removeBox,
-  selectBox,
-  deselectBox,
   setIsDragging,
   setInitialDragCoords,
+  onMouseDownOnBackground,
   onMouseDownOnBox,
   onMouseUp,
   onMouseMove,

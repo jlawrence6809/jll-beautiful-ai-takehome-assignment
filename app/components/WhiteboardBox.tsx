@@ -25,11 +25,13 @@ export const WhiteboardBox = ({ boxId }: WhiteboardBoxProps) => {
         height: bottom - top,
         width: right - left,
       }}
-      onMouseDown={(event) =>
+      onMouseDown={(event) => {
+        // Prevent the background from being clicked when a box is clicked.
+        event.stopPropagation();
         dispatch(
           onMouseDownOnBox({ id: box.id, event: getSafeMouseEvent(event) }),
-        )
-      }
+        );
+      }}
     >
       Box{box.id.charAt(0)}
     </div>
